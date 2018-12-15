@@ -1,0 +1,475 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../../../favicon.ico">
+
+    <title>Henry Books</title>
+
+    <!-- Bootstrap core CSS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.10/js/all.js" integrity="sha384-slN8GvtUJGnv6ca26v8EzVaR9DC58QEwsIk9q1QXdCU8Yu8ck/tL/5szYlBbqmS+" crossorigin="anonymous"></script>
+    <link href="https://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Font fontawesome -->
+    <style>
+        .i-am-centered {
+            margin: auto; max-width: 300px;
+        }
+
+        body {
+            padding-top: 10px;
+            border:1px solid black;
+            height:600px;
+        }
+
+        .mygrid-wrapper-div {
+           overflow: scroll;
+            height: 80%;
+            /* height: 50%; */
+            /* position: fixed; */
+
+            width: 100%;
+            overflow-x:hidden;
+            -ms-overflow-style: none;
+            overflow: -moz-scrollbars-none;
+        }
+
+        .container::-webkit-scrollbar {
+            display: none;
+        }
+
+
+
+    </style>
+    <link href="/css/cover.css" rel="stylesheet">
+
+
+    <script>
+
+        //   GET /book
+        function get_all() {
+            $.ajax({
+                url: "http://localhost:3000/book/"
+            }).then(function (data) {
+                generate_table(data.data);
+            });
+        }
+
+        //   GET /book
+        function get_publishers() {
+            $.ajax({
+                url: "http://localhost:3000/publisher/"
+            }).then(function (data) {
+                // $('#cmb_publishers').clean_up_before_add();
+                $.each(data.data, function (item) {
+                    $('#cmb_publishers')
+                        .append($("<option></option>")
+                            .attr("value", data.data[item].publisherCode)
+                            .text('(' + data.data[item].publisherCode + ') - ' + data.data[item].publisherName));
+                });
+            });
+        }
+
+        //   GET /book/id
+        function get_by_id(id) {
+            let my_url = "http://localhost:3000/book/" + id + "/";  //  Set the URL
+            $.ajax({                                                //  API Call   /book/id
+                url: my_url
+            }).then(function (data) {
+                fill_before_edit(data);                             // Fills fields before show modal
+                $('#myModal').modal('show');                       // Show Modal
+            });
+        }
+
+        //  Post in the client
+        function post_new_item(post_parameters) {
+            let my_url = "http://localhost:3000/book/";
+            var error_list = [];
+            $.post(my_url, {
+                "bookCode": post_parameters.bookCode, "title": post_parameters.title, "publisherCode": post_parameters.publisherCode,
+                "type": post_parameters.type, "paperback": post_parameters.paperback
+            },
+                function (returnedData) {
+                    if (returnedData.message == "ER_DUP_ENTRY") {
+                        alert("there is already a book with this code.");
+                    }
+                }).fail(function () {
+                    if (returnedData.message == 'ER_DUP_ENTRY')
+                        alert("fail!...");
+                });
+        }
+
+
+        //  Rest Delete
+
+        function delete_item(id) {
+            var settings = {
+                "async": true,
+                "crossDomain": true,
+                "url": "http://localhost:3000/book/" + id,
+                "method": "DELETE",
+            }
+
+            $.ajax(settings).done(function (response) {
+                console.log(response);
+            });
+        }
+
+        // Rest Put
+        function update_item(parameters) {
+            var settings = {
+                "async": true,
+                "crossDomain": true,
+                "url": "http://localhost:3000/book/" + parameters.bookCode,
+                "method": "PUT",
+                "data": {
+                    "bookCode": parameters.bookCode,
+                    "title": parameters.title,
+                    "publisherCode": parameters.publisherCode,
+                    "type": parameters.type,
+                    "paperback": parameters.paperback
+                }
+            }
+            $.ajax(settings).done(function (response) {
+                console.log(response);
+            });
+        }
+
+
+        //  Init page
+        $(document).ready(function () {
+            get_all();
+            get_publishers();
+            // generate_table(data);
+        });
+
+        function btn_edit_click(id) {
+            get_by_id(id);
+        }
+
+        function btn_save() {
+            //  Gets Parameters for Ajax Call
+            var parametres = {
+                bookCode:      $('#book_code').val(),
+                title:         $('#title').val(),
+                publisherCode: $('#cmb_publishers').val(),
+                type:          $('#cmb_book_type').val(),
+                paperback:     $('#cmb_paper_back').val()
+            };
+
+            let current_status = $('#modal_header').text();
+
+            if ($('#modal_header').text() == 'New Book') {
+                if (is_valid_data("add_mode")) {
+                    post_new_item(parametres);
+                    $('#myModal').modal('toggle');
+                }
+            }
+
+            if ($('#modal_header').text() == 'Edit Book') {
+                update_item(parametres);
+                update_table_row(parametres);
+                $("#myModal").modal("hide");
+            }
+        }
+
+        function update_table_row(parametres) {
+            //   Creates the selector by ID
+            let selected_row = '#' + parametres.bookCode;
+            //   Creates the new row
+            let result = '<td>' + parametres.bookCode + '</td>';
+            result += '<td>' + parametres.title + '</td>';
+            result += '<td>' + parametres.publisherCode + '</td>';
+            result += '<td>' + parametres.type + '</td>';
+            result += '<td>' + parametres.paperback + '</td>';
+            result += '<td><button class="btn btn-warning"  onclick="refresh_dom(' + "'edit_mode','" + parametres.bookCode + "'" + ')">Edit</button></td>';   // Edit   button
+            result += '<td><button class="btn btn-danger btn-sm"  onclick="btn_delete(' + "'" + parametres.bookCode + "'" + ')">Delete</button></td>';             //  Delete button
+            //  Updates the new Row
+            $(selected_row).html(result)
+        }
+
+        function btn_delete(id) {
+
+            let conf = confirm('Are you sure yo want to delete this book ' + id);
+            //  let selected_row = 'table#data_table tr#' + id;
+            if (conf == true) {
+                delete_item(id);
+                let selected_row = '#' + id;
+                alert(selected_row);
+                $(selected_row).remove();
+            }
+
+        }
+        // generate table
+        function generate_table(records) {
+            /**/
+            let result;
+            result = '<table class="table table-striped table-bordered " id="data_table">';
+            result = '<tr><th scope="col">Book Code</th><th>Title</th><th>Publisher Code</th><th>Type</th><th>Paper Back</th></tr></thead>'
+            for (i = 0; i < records.length; i++) {
+                result += '<tr id="' + records[i].bookCode + '" >';     // Begin Row
+                result += '<td>' + records[i].bookCode + '</td>';       // Field Name
+                result += '<td>' + records[i].title + '</td>';          // Field Name
+                result += '<td>' + records[i].publisherCode + '</td>';  // Field Name
+                result += '<td>' + records[i].type + '</td>';           // Field Name
+                result += '<td>' + records[i].paperback + '</td>';      // Field Name
+                result += '<td><button class="btn btn-warning btn-sm"  onclick="refresh_dom(' + "'edit_mode','" + records[i].bookCode + "'" + ')">Edit</button></td>';       // Edit   button
+                result += '<td><button class="btn btn-danger btn-sm"  onclick="btn_delete(' + "'" + records[i].bookCode + "'" + ')">Delete</button></td>';   // Delete button
+                result += '</tr>';                                      // End Row
+            }
+            result += '</table>';
+            $("#model_list").append(result);
+        }
+
+        function refresh_dom(next_status, id_item) {
+
+            //  Cleans all controls before add new record
+            $("#error_list").html("");
+            if (next_status == 'add_mode') {
+                let header_caption = 'New Book'
+                $('#book_code').val("");
+                $('#book_code').prop('readonly', false);  //  disable the primary Key
+                $('#title').val("");
+                $('#cmb_publishers').val("000");
+                $('#cmb_book_type').val("000");
+                $('#cmb_paper_back').val("000");
+                $('#modal_header').text(header_caption);
+                $('#myModal').modal('show');
+            }
+
+            //  Finds the existing record to edit
+            if (next_status == 'edit_mode') {
+                let my_url = "http://localhost:3000/book/" + id_item + "/";  //  Set the URL
+                $.ajax({                                                //  API Call   /book/id
+                    url: my_url
+                }).then(function (data) {
+                    //  Fills controls
+                    let header_caption = 'Edit Book'
+                    $('#book_code').val(data.data.bookCode);
+                    $('#book_code').prop('readonly', true);  //  disable the primary Key
+                    $('#title').val(data.data.title);
+                    $('#cmb_publishers').val(data.data.publisherCode);
+                    $('#publisher').val(data.data.publisherCode);
+                    $('#cmb_book_type').val(data.data.type);
+                    $('#cmb_paper_back').val(data.data.paperback);
+                    $('#modal_header').text(header_caption);
+                    $('#myModal').modal('show');                       // Show Modal
+                });
+            }
+
+        }
+
+        function is_valid_data(current_status) {
+            var result = true;
+            var error_list = [];
+            if ($('#book_code').val() == "") {
+                error_list.push("Book Code is empty.")
+                result = false;
+            }
+
+            if ($('#title').val() == "") {
+                error_list.push("Book Title is empty.")
+                result = false;
+            }
+
+            if ($('#cmb_publishers').val() == "000") {
+                error_list.push("Please select a publisher.")
+                result = false;
+            }
+
+            if ($('#cmb_book_type').val() == "000") {
+                error_list.push("Please select a book type.")
+                result = false;
+            }
+
+            if ($('#cmb_paper_back').val() == "000") {
+                error_list.push("Please select paper back.")
+                result = false;
+            }
+
+            if (!result)
+                show_errors(error_list);
+            return result;
+        }
+
+
+
+        function show_errors(error_list) {
+            var i;
+            var ul_item = "<ul>"
+            for (i = 0; i < error_list.length; i++) {
+                ul_item += "<li>" + error_list[i] + "</li>"
+            }
+            ul_item += "</ul>"
+            $("#error_list").html(ul_item);
+            $("#error_list").show();
+        }
+    </script>
+
+  </head>
+
+  <body class="text-center">
+
+<!-- Menu-->
+    <main role="main">
+        <div class="inner">
+            <h3 class="masthead-brand">
+                <i class="fa fa-database fa-3x"></i>
+            </h3>
+            <nav class="nav nav-masthead justify-content-center">
+                <a class="nav-link active" href="/">Home</a>
+                <a class="nav-link" href="/book.html">Books</a>
+                <a class="nav-link" href="/author.html">Authors</a>
+                <a class="nav-link" href="/publisher.html">Publisher</a>
+                <a class="nav-link" href="/copy.html">Copies</a>
+            </nav>
+        </div>
+    </main>
+
+
+
+
+
+
+
+
+<div class="mygrid-wrapper-div container conten" ::-webkit-scrollbar>
+    <table class="table">
+
+        <br><br>
+        <!-- Bottom "New Book" -->
+        <div class="row">
+            <div class="col-sm-2"></div>      <!-- Gives space horizontally -->
+
+            <div class="col-sm-8">
+                <!-- Trigger the modal with a button -->
+                <button type="button" class="btn btn-info" onclick="refresh_dom('add_mode', 0 )">New Book</button>
+            </div>
+        </div>
+
+    <br><br>
+        <!-- Populate datbase-->
+        <div class="col-sm-8" id="model_list"></div>
+
+
+
+
+
+
+
+
+        <!-- Form bottoms -->
+        <div id="myModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+
+                <!-- new or update -->
+                <div class="modal-content">
+                    <div class="modal-header btn btn-info">
+                        <h4 class="modal-title btn btn-secondary" id="modal_header">New Book</h4>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div id="error_list">
+                    </div>
+                    <div class="modal-body btn btn-secondary btn-lg active">
+                        <!-- Book Code -->
+                        <div class="form-group">
+                            <label for="book_code ">Book Code</label>
+                            <input type="text" class="form-control" id="book_code">
+                        </div>
+                        <!-- Title -->
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <input type="text" class="form-control" id="title">
+                        </div>
+                        <!--Publisher Code-->
+                        <label for="cmb_publishers" id="lb_1">Publisher</label>
+                        <select class="form-control" id="cmb_publishers">
+                            <option value="000">Select a Publisher</option>
+                        </select>
+                        <!--Type-->
+                        <div class="form-group">
+                            <label for="cmb_book_type">Type of book</label>
+                            <select class="form-control" id="cmb_book_type">
+                                <option value="000">Select one</option>
+                                <option value="SFI">SFI </option>
+                                <option value="HOR">HOR </option>
+                                <option value="FIC">FIC </option>
+                                <option value="ART">ART </option>
+                                <option value="MYS">MYS </option>
+                                <option value="POE">POE </option>
+                                <option value="PSY">PSY </option>
+                                <option value="SCI">SCI </option>
+                                <option value="TRA">TRA </option>
+                                <option value="HIS">HIS </option>
+                                <option value="CMP">CMP </option>
+                                <option value="PHI">PHI </option>
+                            </select>
+                        </div>
+                        <!--Is Paper Back-->
+                        <label for="cmb_paper_back" id="lb_1">Is Paper Back:</label>
+                        <select class="form-control" id="cmb_paper_back">
+                            <option value="000">Select one</option>
+                            <option value="Y">Yes </option>
+                            <option value="N">No </option>
+                        </select>
+                    </div>
+                    <div class="modal-footer btn btn-secondary btn-lg active">
+
+
+
+                        <button class="btn btn-info" onclick="btn_save()">Submit</button>
+                        <button type="button" class="btn btn-info" data-dismiss="modal">Cancel</button>
+
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </table>
+</div>
+<!-- /container -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br><br>
+
+      <footer class="mastfoot mt-auto">
+        <div class="inner">
+          <p>&copy; Copyright 2018 Arturo Fernandez <a href="https://m.fiu.edu/catalog/index.php?action=course&subject=COP&number=4710">COP 4710</a> Spring 2018</p>
+        </div>
+      </footer>
+    </div>
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+    <script src="https://getbootstrap.com/assets/js/vendor/popper.min.js"></script>
+    <script src="https://getbootstrap.com/dist/js/bootstrap.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/4.0.0/js/bootstrap.min.js"></script>
+
+  </body>
+</html>

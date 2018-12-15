@@ -1,0 +1,46 @@
+{
+  "name": "final_project",
+  "version": "1.0.0",
+  "description": "Final COP project",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "set DEBUG=app* & nodemon app.js",
+    "find_errors": "eslint app.js",
+    "fix_errors": "eslint app.js --fix"
+  },
+  "author": "Arturo Fernandez",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "bootstrap": "^4.1.0",
+    "chalk": "^2.4.0",
+    "consolidate": "^0.15.1",
+    "cors": "^2.8.4",
+    "debug": "^3.1.0",
+    "ejs": "^2.5.8",
+    "express": "^4.16.3",
+    "jquery": "^3.3.1",
+    "morgan": "^1.9.0",
+    "mysql": "^2.15.0",
+    "nodemon": "^1.17.3",
+    "npm": "^5.8.0",
+    "path": "^0.12.7",
+    "swig": "^1.4.2"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.11.0"
+  },
+  "nodemonConfig": {
+    "restartable": "rs",
+    "ignore": [
+      "node_modules/**/node_modules"
+    ],
+    "delay": "2500",
+    "env": {
+      "NODE_ENV": "development",
+      "PORT": 3000
+    }
+  }
+}

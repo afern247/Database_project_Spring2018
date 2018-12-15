@@ -1,0 +1,454 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../../../favicon.ico">
+
+    <title>Copies</title>
+
+    <!-- Bootstrap core CSS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.10/js/all.js" integrity="sha384-slN8GvtUJGnv6ca26v8EzVaR9DC58QEwsIk9q1QXdCU8Yu8ck/tL/5szYlBbqmS+" crossorigin="anonymous"></script>
+    <link href="https://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Font fontawesome -->
+
+    <style>
+        .i-am-centered {
+            margin: auto; max-width: 300px;
+        }
+
+        body {
+            padding-top: 10px;
+            border:1px solid black;
+            height:600px;
+        }
+
+        .mygrid-wrapper-div {
+           overflow: scroll;
+            height: 80%;
+            /* height: 50%; */
+            /* position: fixed; */
+
+            width: 100%;
+            overflow-x:hidden;
+            -ms-overflow-style: none;
+            overflow: -moz-scrollbars-none;
+        }
+
+        .container::-webkit-scrollbar {
+            display: none;
+        }
+
+
+
+    </style>
+    <link href="/css/cover.css" rel="stylesheet">
+
+    <script>
+
+            ///// Get Copy
+            function get_all() {
+                $.ajax({
+                    url: "http://localhost:3000/copy/"
+                }).then(function (data) {
+                    generate_table(data.data);
+                });
+            }
+
+            ///// Get book
+            function get_publishers() {
+                $.ajax({
+                    url: "http://localhost:3000/copy/"
+                }).then(function (data) {
+                    // $('#cmb_bookCode').clean_up_before_add();
+                    $.each(data.data, function (item) {
+                        $('#cmb_bookCode')
+                            .append($("<option></option>")
+                                .attr("value", data.data[item].bookCode)
+                                .text('(' + data.data[item].bookCode + ') - ' + data.data[item].bookCode));
+                    });
+                });
+            }
+
+            ///// Get Branch
+            function get_branch() {
+                $.ajax({
+                    url: "http://localhost:3000/branch/"
+                }).then(function (data) {
+                    // $('#cmb_bookCode').clean_up_before_add();
+                    $.each(data.data, function (item) {
+                        $('#cmb_branch')
+                            .append($("<option></option>")
+                                .attr("value", data.data[item].branchNum)
+                                .text(data.data[item].branchName));
+                    });
+                });
+            }
+            ///// Post
+            function post_new_item(post_parameters) {
+                let my_url = "http://localhost:3000/copy/";
+                $.post(my_url, {
+                    "bookCode": post_parameters.bookCode, "branchNum": post_parameters.branchNum, "copyNum": post_parameters.copyNum,
+                    "quality": post_parameters.quality, "price": post_parameters.price
+                },
+                    function (returnedData) {
+                        if (returnedData.message == "ER_DUP_ENTRY") {
+                            alert("there is already a copy  with this code in this branch.");
+                        }
+                    }).fail(function () {
+                        if (returnedData.message == 'ER_DUP_ENTRY')
+                            alert("there is already a copy  with this code in this branch.");
+                    });
+            }
+
+            ////// Put    Termina esto fide
+            // Rest Put
+            function update_item(parameters) {
+                var settings = {
+                    "async": true,
+                    "crossDomain": true,
+                    "url": "http://localhost:3000/copy/" + parameters.bookCode,
+                    "method": "PUT",
+                    "data": {
+                        "bookCode": parameters.bookCode,
+                        "branchNum": parameters.branchNum,
+                        "copyNum": parameters.copyNum,
+                        "quality": parameters.quality,
+                        "price": parameters.price
+                    }
+                }
+                $.ajax(settings).done(function (response) {
+                    console.log(response);
+                });
+            }
+
+            function delete_item(id) {
+                var settings = {
+                    "async": true,
+                    "crossDomain": true,
+                    "url": "http://localhost:3000/copy/" + id,
+                    "method": "DELETE",
+                }
+
+                $.ajax(settings).done(function (response) {
+                    console.log(response);
+                });
+            }
+
+            /////  Init page
+            $(document).ready(function () {
+                get_all();
+                get_publishers();
+                get_branch();
+
+            });
+
+            function btn_edit_click(id) {
+                get_by_id(id);
+            }
+
+            function btn_save() {
+                //////  Gets Parameters for Ajax Call
+                var parametres = {
+                    bookCode: $('#cmb_bookCode').val(),
+                    branchNum: $('#cmb_branch').val(),
+                    copyNum: $('#copyNum').val(),
+                    quality: $('#quality').val(),
+                    price: $('#price').val()
+                };
+
+                let current_status = $('#modal_header').text();
+
+                if ($('#modal_header').text() == 'New Copy') {
+                    if (is_valid_data("add_mode")) {
+                        post_new_item(parametres);
+                        update_table_row(parametres)
+                        $('#myModal').modal('hide');
+                    }
+                }
+
+                if ($('#modal_header').text() == 'Edit Copy') {
+                    update_item(parametres);
+                    update_table_row(parametres)
+                    $('#myModal').modal('hide');
+                }
+            }
+
+            function update_table_row(parametres) {
+                //   Creates the selector by ID
+                let selected_row = '#' + parametres.bookCode + parametres.branchNum + parametres.copyNum;
+
+                //   Creates the new row
+                let id = parametres.bookCode + "/" + parametres.branchNum + "/" + parametres.copyNum;
+                let row_id = parametres.bookCode + parametres.branchNum + parametres.copyNum;
+                let result = "";
+                // result += '<tr id="' + row_id + '" >';                                  // Begin Row
+                result += '<td>' + parametres.bookCode + '</td>';    // Field Name
+                result += '<td>' + parametres.branchNum + '</td>';  // Field Name
+                result += '<td>' + parametres.copyNum + '</td>';  // Field Name
+                result += '<td>' + parametres.quality + '</td>';  // Field Name
+                result += '<td>' + parametres.price + '</td>';  // Field Name
+                result += '<td><button class="btn btn-warning btn-sm"  onclick="refresh_dom(' + "'edit_mode','" + id + "'" + ')">Edit</button></td>'; // Edit   button
+                result += '<td><button class="btn btn-danger btn-sm"  onclick="btn_delete(' + "'" + id + "'" + ')">Delete</button></td>';   // Delete button
+                // result += '</tr>';
+                //  Updates the new Row
+                $(selected_row).html(result)
+            }
+
+            function btn_delete(id) {
+
+                let conf = confirm('Are you sure yo want to delete this copy ');
+                let r_id = id.replace("/", "");
+                let row_id = '#' + r_id.replace("/", "");
+                //  let selected_row = 'table#data_table tr#' + id;
+                if (conf == true) {
+                    delete_item(id);
+                    $(row_id).remove();
+                }
+
+            }
+            function generate_table(records) {
+                /**/
+                let result;
+
+                result = '<table class="table table-striped table-bordered " id="data_table">';
+                result = '<tr><th scope="col">Book Code</th><th>branchNum</th><th>copyNum</th><th>quality</th><th>price</th></tr></thead>'
+                for (i = 0; i < records.length; i++) {
+                    let id = records[i].bookCode + "/" + records[i].branchNum + "/" + records[i].copyNum;
+                    let row_id = records[i].bookCode + records[i].branchNum + records[i].copyNum;
+                    result += '<tr id="' + row_id + '" >';                                  // Begin Row
+                    result += '<td>' + records[i].bookCode + '</td>';    // Field Name
+                    result += '<td>' + records[i].branchNum + '</td>';  // Field Name
+                    result += '<td>' + records[i].copyNum + '</td>';  // Field Name
+                    result += '<td>' + records[i].quality + '</td>';  // Field Name
+                    result += '<td>' + records[i].price + '</td>';  // Field Name
+                    result += '<td><button class="btn btn-warning btn-sm"  onclick="refresh_dom(' + "'edit_mode','" + id + "'" + ')">Edit</button></td>'; // Edit   button
+                    result += '<td><button class="btn btn-danger btn-sm"  onclick="btn_delete(' + "'" + id + "'" + ')">Delete</button></td>';   // Delete button
+                    result += '</tr>';                                 // End Row
+                }
+                result += '</table>';
+                $("#model_list").append(result);
+            }
+
+            function refresh_dom(next_status, id_item) {
+
+                //  Cleans all controls before add new record
+                $("#error_list").html("");
+                if (next_status == 'add_mode') {
+                    let header_caption = 'New Copy'
+                    $('#cmb_bookCode').val("000");
+                    $('#cmb_bookCode').prop("disabled", false);  //  disable the primary Key
+                    $('#cmb_branch').val("000");
+                    $('#copyNum').val("");
+                    $('#quality').val("000");
+                    $('#price').val("");
+                    $('#modal_header').text(header_caption);
+                    $('#myModal').modal('show');
+                }
+
+                //  Finds the existing record to edit
+                if (next_status == 'edit_mode') {
+                    let my_url = "http://localhost:3000/copy_1/" + id_item + "/";  //  Set the URL
+                    $.ajax({                                                //  API Call   /book/id
+                        url: my_url
+                    }).then(function (data) {
+                        //  Fills controls
+                        let header_caption = 'Edit Copy'
+                        $('#cmb_bookCode').val(data.data.bookCode);
+                        $('#cmb_bookCode').prop("disabled", true);  //  disable the primary Key
+                        $('#cmb_branch').val(data.data.branchNum);
+                        $('#cmb_branch').prop("disabled", true);  //  disable the primary Key
+                        $('#copyNum').val(data.data.copyNum);
+                        $('#copyNum').prop('readonly', true);  //  disable the primary Key
+                        $('#quality').val(data.data.quality);
+                        $('#price').val(data.data.price);
+                        $('#modal_header').text(header_caption);
+                        $('#myModal').modal('show');                       // Show Modal
+                    });
+                }
+            }
+
+            function is_valid_data(current_status) {
+                var result = true;
+                var error_list = [];
+                if ($('#cmb_bookCode').val() == "000") {
+                    error_list.push("Book Code is empty.")
+                    result = false;
+                }
+
+                if ($('#branchNum').val() == "") {
+                    error_list.push("branch number is empty.")
+                    result = false;
+                }
+
+                if ($('#copyNum').val() == "") {
+                    error_list.push("copy number is empty.")
+                    result = false;
+                }
+
+                if ($('#quality').val() == "000") {
+                    error_list.push("quality is empty.")
+                    result = false;
+                }
+
+                if ($('#price').val() == "") {
+                    error_list.push("price is empty.")
+                    result = false;
+                }
+
+                if (!result)
+                    show_errors(error_list);
+                return result;
+            }
+
+            function show_errors(error_list) {
+                var i;
+                var ul_item = "<ul>"
+                for (i = 0; i < error_list.length; i++) {
+                    ul_item += "<li>" + error_list[i] + "</li>"
+                }
+                ul_item += "</ul>"
+                $("#error_list").html(ul_item);
+                $("#error_list").show();
+            }
+        </script>
+
+
+  </head>
+
+  <body class="text-center">
+
+<!-- Menu-->
+    <main role="main">
+        <div class="inner">
+            <h3 class="masthead-brand">
+                <i class="fa fa-database fa-3x"></i>
+            </h3>
+            <nav class="nav nav-masthead justify-content-center">
+                <a class="nav-link active" href="/">Home</a>
+                <a class="nav-link" href="/book.html">Books</a>
+                <a class="nav-link" href="/author.html">Authors</a>
+                <a class="nav-link" href="/publisher.html">Publisher</a>
+                <a class="nav-link" href="/copy.html">Copies</a>
+
+            </nav>
+        </div>
+    </main>
+
+
+
+<div class="mygrid-wrapper-div container conten" ::-webkit-scrollbar>
+    <table class="table">
+
+
+            <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-8">
+                        <!-- Trigger the modal with a button -->
+                        <button type="button" class="btn btn-info btn-sm" onclick="refresh_dom('add_mode', 0 )">New Copy</button> <!--data-target="#myModal" -->
+                    </div>
+                    <div class="col-sm-2"></div>
+                </div>
+                <div class="col-sm-2"></div>
+                <div class="col-sm-8" id="model_list">
+
+                </div>
+                <div class="col-sm-2"></div>
+
+                <!-- Modal -->
+                <div id="myModal" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
+
+                        <!-- Modal content  when you click on add new or update -->
+                        <div class="modal-content">
+                            <div class="modal-header btn btn-info">
+                                <h4 class="modal-title btn btn-secondary" id="modal_header">New Copy</h4>
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            </div>
+                            <div id="error_list">
+                            </div>
+                            <div class="modal-body btn btn-secondary btn-lg active">
+                                <!-- Book Code -->
+                                <label for="cmb_bookCode" id="lb_1">Book Code</label>
+                                <select class="form-control" id="cmb_bookCode">
+                                    <option value="000">Select</option>
+                                </select>
+                                <!-- branchNum -->
+                                <div class="form-group">
+                                    <label for="branchNum">branch number</label>
+                                    <select class="form-control" id="cmb_branch">
+                                        <option value="000">Select</option>
+                                    </select>
+                                </div>
+                                <!-- copyNum -->
+                                <div class="form-group">
+                                    <label for="copyNum">copy number</label>
+                                    <input type="text" class="form-control" id="copyNum">
+                                </div>
+                                <!-- quality -->
+                                <div class="form-group">
+                                    <label for="quality">quality</label>
+                                    <select class="form-control" id="quality">
+                                        <option value="000">Select </option>
+                                        <option value="Excellent">Excellent </option>
+                                        <option value="Good">Good </option>
+                                        <option value="Fair">Fair </option>
+                                        <option value="Poor">Poor </option>
+
+                                    </select>
+                                </div>
+                                <!-- price -->
+                                <div class="form-group">
+                                    <label for="price">price</label>
+                                    <input type="text" class="form-control" id="price">
+                                </div>
+
+                                <div class="modal-footer btn btn-secondary btn-lg active">
+                                    <button class="btn btn-info" onclick="btn_save()">OK</button>
+                                    <button type="button" class="btn btn-info" data-dismiss="modal">Cancel</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+
+
+
+
+
+    </table>
+</div>
+<!-- /container -->
+
+
+
+
+<br><br>
+
+      <footer class="mastfoot mt-auto">
+        <div class="inner">
+          <p>&copy; Copyright 2018 Arturo Fernandez <a href="https://m.fiu.edu/catalog/index.php?action=course&subject=COP&number=4710">COP 4710</a> Spring 2018</p>
+        </div>
+      </footer>
+    </div>
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+    <script src="https://getbootstrap.com/assets/js/vendor/popper.min.js"></script>
+    <script src="https://getbootstrap.com/dist/js/bootstrap.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/4.0.0/js/bootstrap.min.js"></script>
+
+  </body>
+</html>

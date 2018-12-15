@@ -1,0 +1,33 @@
+
+.top_background {
+  position: absolute;
+  top: 0;
+  width: 100vw;
+  height: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-size: cover;
+  background-repeat: no-repeat;
+  height: 200px;
+  background: no-repeat center;
+}
+
+.logo {
+  color: rgb(192, 192, 192);
+  text-shadow: ivory;
+}
+
+footer {
+  position:absolute;
+  bottom:0;
+  width:100%;
+  height:60px;  /* Height of the footer */
+  background-color:#efefef;
+  box-shadow: -6px 1px 20px black;
+}
+
+.footer_text{
+    text-shadow: 0px 2px 20px black;
+    margin-top: 17px;
+}
+

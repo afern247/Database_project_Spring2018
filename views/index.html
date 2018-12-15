@@ -1,0 +1,265 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../../../favicon.ico">
+
+    <title>Index page</title>
+
+    <!-- Bootstrap core CSS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.10/js/all.js" integrity="sha384-slN8GvtUJGnv6ca26v8EzVaR9DC58QEwsIk9q1QXdCU8Yu8ck/tL/5szYlBbqmS+" crossorigin="anonymous"></script>
+    <link href="https://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Font fontawesome -->
+    <style>
+        .i-am-centered {
+            margin: auto; max-width: 300px;
+        }
+
+        body {
+            padding-top: 10px;
+            border:1px solid black;
+            height:600px;
+        }
+
+        .mygrid-wrapper-div {
+           overflow: scroll;
+            height: 80%;
+            /* height: 50%; */
+            /* position: fixed; */
+
+            width: 100%;
+            overflow-x:hidden;
+            -ms-overflow-style: none;
+            overflow: -moz-scrollbars-none;
+        }
+
+        .container::-webkit-scrollbar {
+            display: none;
+        }
+
+       /* Font */
+
+
+
+        h2 {
+            font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
+            font-size: 70px;
+            padding: 25px 10px;
+            text-align: center;
+            text-transform: uppercase;
+            text-rendering: optimizeLegibility;
+        }
+
+        h3 {
+            font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
+            font-size: 30px;
+            padding: 6px 2px;
+            text-align: center;
+            text-transform: uppercase;
+            text-rendering: optimizeLegibility;
+
+        }
+
+        h4 {
+            font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
+            font-size: 12px;
+            padding: 10px 5px;
+
+            text-transform: uppercase;
+            text-rendering: optimizeLegibility;
+            color:#000000;
+
+        }
+
+        h5 {
+            font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
+            font-size: 15px;
+            padding: 15px 5px;
+            text-align: center;
+            text-transform: uppercase;
+            text-rendering: optimizeLegibility;
+            color: ghostwhite;
+            background: rgb(91, 151, 126);
+        }
+
+        h6 {
+            font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
+            font-size: 20px;
+            padding: 15px 5px;
+            text-align: center;
+            text-transform: uppercase;
+            text-rendering: optimizeLegibility;
+            color: #000000;
+
+        }
+
+        h7 {
+            font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif;
+            font-size: 15px;
+            padding: 8px 2px;
+            text-align: center;
+            text-transform: uppercase;
+            text-rendering: optimizeLegibility;
+            color: #000000;
+        }
+
+
+    </style>
+    <link href="/css/cover.css" rel="stylesheet">
+
+
+    <script>
+        /* search by Title in book Table (Node file) */
+        function search() {
+            let search_value = $("#txtSearch").val();
+            if ($("#txtSearch").val() == "") {
+                $("#search_data").html("There is nothing to search....");
+            }
+            else
+            {
+                let my_url = "http://localhost:3000/search/" + search_value + "/";
+                $.ajax({                                                //  API Call   /book/id
+                    url: my_url
+                }).then(function (data) {
+                    fill_data(data);
+                });
+            }
+        }
+        // result from the search
+        function fill_data(data) {
+            let result = "";
+            for (i = 0; i < data.data.length; i++) {
+                result +="<div>"
+                result += "<h5>" + data.data[i].title + "</h5>";
+                result += "<h4>Author :" + data.data[i].authorFirst + " " + data.data[i].authorLast + "</h4>";
+                result += "<h4>Publisher:" + data.data[i].publisherName + "</h4>";
+                result += "<h4>Branch:" + data.data[i].branchName + "</h4>";
+                result += "<h4>ON Hand:" + data.data[i].OnHand +  "</h4>";
+                result += "<h4>Copy:" + data.data[i].copyNum + "</h4>";
+                result += "<h4>Quality:" + data.data[i].quality + "</h4>";
+                result += "</div>"
+            }
+            $("#search_data").html(result);
+        }
+    </script>
+
+  </head>
+
+  <body class="text-center">
+
+<!-- Menu-->
+    <main role="main">
+        <div class="inner">
+            <h3 class="masthead-brand">
+                <i class="fa fa-database fa-3x"></i>
+            </h3>
+            <nav class="nav nav-masthead justify-content-center">
+                <a class="nav-link active" href="/">Home</a>
+                <a class="nav-link" href="/book.html">Books</a>
+                <a class="nav-link" href="/author.html">Authors</a>
+                <a class="nav-link" href="/publisher.html">Publisher</a>
+                <a class="nav-link" href="/copy.html">Copies</a>
+
+                <div>
+                    <input class="form-control mr-sm-2" type="text" placeholder="Search book by title" id="txtSearch" />
+
+                </div>
+
+                <button class="btn btn-outline-warning my-2 mr-sm-2" type="submit" onclick="search()">Search</button>
+
+            </nav>
+        </div>
+    </main>
+
+
+<div class="mygrid-wrapper-div container conten" ::-webkit-scrollbar>
+    <table class="table">
+
+        <br><br><br>
+        <main role="main" class="inner cover">
+            <h1 class="cover-heading">Welcome to Henry Books Database</h1>
+            <p class="lead">a structured set of data especially accessible in various ways.</p>
+            <p class="lead">
+              <a href="/learnmore.html" class="btn btn-lg btn-secondary">Learn more</a>
+            </p>
+          </main>
+
+
+        <div class="container ">
+
+       <!-- Search form -->
+       <div>
+           <div></div>
+           <div id="search_data"></div>
+           <div></div>
+       </div>
+       <p></p>
+   </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </table>
+</div>
+<!-- /container -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br><br>
+
+      <footer class="mastfoot mt-auto">
+        <div class="inner">
+          <p>&copy; Copyright 2018 Arturo Fernandez <a href="https://m.fiu.edu/catalog/index.php?action=course&subject=COP&number=4710">COP 4710</a> Spring 2018</p>
+        </div>
+      </footer>
+    </div>
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+    <script src="https://getbootstrap.com/assets/js/vendor/popper.min.js"></script>
+    <script src="https://getbootstrap.com/dist/js/bootstrap.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/4.0.0/js/bootstrap.min.js"></script>
+
+  </body>
+</html>
